@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 95%;
+
+    --card: 240 10% 5.5%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 240 10% 5.5%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 0 0% 95%;
+    --primary-foreground: 240 5.9% 10%;
+
+    --secondary: 240 3.7% 13%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 240 3.7% 13%;
+    --muted-foreground: 240 5% 55%;
+
+    --accent: 240 3.7% 13%;
+    --accent-foreground: 0 0% 95%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 14%;
+    --input: 240 3.7% 14%;
+    --ring: 240 4.9% 60%;
+
+    --radius: 0.5rem;
+
+    /* brand accent */
+    --brand: 217 91% 60%;
+    --brand-foreground: 0 0% 98%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+}
+
+/* ── Scrollbars ─────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(240 3.7% 22%);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(240 3.7% 30%);
+}
+
+/* ── Prose / Markdown ───────────────────────────────────── */
+.prose {
+  @apply text-sm leading-relaxed;
+  color: hsl(var(--foreground));
+}
+
+.prose p {
+  @apply my-3 first:mt-0 last:mb-0;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  @apply font-semibold mt-6 mb-2 first:mt-0;
+  color: hsl(var(--foreground));
+}
+
+.prose h1 { @apply text-xl; }
+.prose h2 { @apply text-lg; }
+.prose h3 { @apply text-base; }
+
+.prose ul,
+.prose ol {
+  @apply pl-5 my-3;
+}
+.prose ul { @apply list-disc; }
+.prose ol { @apply list-decimal; }
+.prose li { @apply my-1; }
+
+.prose a {
+  @apply text-blue-400 underline underline-offset-2 hover:text-blue-300 transition-colors;
+}
+
+.prose blockquote {
+  @apply border-l-2 border-zinc-600 pl-4 italic text-muted-foreground my-4;
+}
+
+.prose table {
+  @apply w-full text-sm border-collapse my-4;
+}
+.prose th {
+  @apply border border-border px-3 py-1.5 text-left font-semibold bg-muted/50;
+}
+.prose td {
+  @apply border border-border px-3 py-1.5;
+}
+
+.prose hr {
+  @apply border-border my-6;
+}
+
+.prose strong {
+  @apply font-semibold;
+}
+
+/* ── Syntax Highlighting overrides ─────────────────────── */
+.prose pre {
+  @apply m-0 p-0 bg-transparent;
+}
+
+/* Inline code (outside CodeBlock) */
+.prose code:not(pre code) {
+  @apply font-mono text-xs bg-zinc-800 text-zinc-200 px-1.5 py-0.5 rounded;
+}

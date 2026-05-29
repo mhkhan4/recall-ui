@@ -52,8 +52,10 @@ Open `http://localhost:3000`.
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `NEXT_PUBLIC_INGEST_GATE_URL` | `http://localhost:8000` | Base URL for ingest-gate |
-| `NEXT_PUBLIC_QUERY_SERVICE_URL` | `http://localhost:8002` | Base URL for query-service |
+| `NEXT_PUBLIC_INGEST_GATE_URL` | `http://localhost:8000` | Base URL the **browser** uses to reach ingest-gate. On Vercel, set to `/api/ingest-gate` to route through the server-side rewrite proxy. |
+| `NEXT_PUBLIC_QUERY_SERVICE_URL` | `http://localhost:8002` | Base URL the **browser** uses to reach query-service. On Vercel, set to `/api/query-service`. |
+| `INGEST_GATE_URL` | *(none)* | **Server-side only** — actual EC2 URL (e.g. `http://18.225.118.80:8000`). Used by `next.config.ts` rewrites to proxy `/api/ingest-gate/*` requests. Set in Vercel project settings, not in `.env.local`. |
+| `QUERY_SERVICE_URL` | *(none)* | **Server-side only** — actual EC2 URL (e.g. `http://18.225.118.80:8002`). Used by `next.config.ts` rewrites to proxy `/api/query-service/*` requests. Set in Vercel project settings, not in `.env.local`. |
 
 ---
 

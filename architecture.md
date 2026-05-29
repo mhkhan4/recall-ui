@@ -255,8 +255,10 @@ Notable absences from the original design: `nanoid`, `sonner`, `next-themes`, `r
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `NEXT_PUBLIC_INGEST_GATE_URL` | `http://localhost:8000` | Base URL for ingest-gate (OAuth + setup endpoints) |
-| `NEXT_PUBLIC_QUERY_SERVICE_URL` | `http://localhost:8002` | Base URL for query-service (RAG query endpoints) |
+| `NEXT_PUBLIC_INGEST_GATE_URL` | `http://localhost:8000` | Base URL the **browser** uses to reach ingest-gate. On Vercel, set to `/api/ingest-gate` (relative) to route through the rewrite proxy. |
+| `NEXT_PUBLIC_QUERY_SERVICE_URL` | `http://localhost:8002` | Base URL the **browser** uses to reach query-service. On Vercel, set to `/api/query-service`. |
+| `INGEST_GATE_URL` | — | **Server-side only.** Actual EC2 ingest-gate URL. Used by `next.config.ts` rewrites — never sent to the browser. |
+| `QUERY_SERVICE_URL` | — | **Server-side only.** Actual EC2 query-service URL. Used by `next.config.ts` rewrites — never sent to the browser. |
 
 ---
 
@@ -265,6 +267,7 @@ Notable absences from the original design: `nanoid`, `sonner`, `next-themes`, `r
 | Decision | Rationale |
 |----------|-----------|
 | **Token in `localStorage` (persist key `recall-auth`)** | Keeps the UI fully decoupled from the backend domain; avoids cross-domain cookie configuration. Trade-off: any XSS yields token theft. Acceptable for a single-developer tool. |
+| **Next.js server-side rewrite proxy** | Vercel serves HTTPS while EC2 runs HTTP. Browsers block mixed-content `http://` fetches from an `https://` page. `next.config.ts` `rewrites()` proxies `/api/ingest-gate/*` and `/api/query-service/*` to the EC2 host server-side, so the browser only ever makes same-origin calls to Vercel. `connect-src 'self'` in the CSP is now sufficient. `INGEST_GATE_URL` and `QUERY_SERVICE_URL` are server-side Vercel env vars; `NEXT_PUBLIC_*` vars are set to the relative `/api/*` paths so browser code routes through the proxy. |
 | **POST + `fetch` / `ReadableStream` for SSE** | `EventSource` cannot send `Authorization` headers and is GET-only. Manual line-by-line SSE parser is ~50 LOC and fully typed. |
 | **Client-side-only thread persistence** | Zero backend work; threads stored in `localStorage` via Zustand persist. Lost on device change — acceptable for v1. |
 | **`useChatStore.isStreaming` not persisted** | Streaming state is transient and should not survive a page reload (would leave the UI stuck with a spinning cursor). |

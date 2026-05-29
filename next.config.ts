@@ -5,6 +5,22 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+
+  // Proxy /api/ingest-gate/* and /api/query-service/* to EC2 server-side.
+  // This avoids browser mixed-content blocking (HTTPS Vercel → HTTP EC2).
+  async rewrites() {
+    return [
+      {
+        source: '/api/ingest-gate/:path*',
+        destination: `${process.env.INGEST_GATE_URL}/:path*`,
+      },
+      {
+        source: '/api/query-service/:path*',
+        destination: `${process.env.QUERY_SERVICE_URL}/:path*`,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {
@@ -17,7 +33,8 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https://avatars.githubusercontent.com",
-              "connect-src 'self' http://localhost:8000 http://localhost:8002",
+              // Browser only ever calls 'self' (Vercel) — rewrites handle EC2 server-side
+              "connect-src 'self'",
               "font-src 'self'",
             ].join('; '),
           },

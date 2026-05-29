@@ -1,6 +1,6 @@
 'use client';
 
-import { SquarePen, LogOut, Settings, Command } from 'lucide-react';
+import { SquarePen, LogOut, Settings, Command, X } from 'lucide-react';
 import * as Avatar from '@radix-ui/react-avatar';
 import { useChatStore } from '@/store/chat';
 import { useAuthStore } from '@/store/auth';
@@ -9,8 +9,14 @@ import { SidebarSources } from './SidebarSources';
 import { SidebarThreads } from './SidebarThreads';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/cn';
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function AppSidebar({ isOpen = false, onClose }: AppSidebarProps) {
   const { createThread, setActiveThread } = useChatStore();
   const { username, avatarUrl, clearAuth } = useAuthStore();
   const router = useRouter();
@@ -18,6 +24,7 @@ export function AppSidebar() {
   function handleNewChat() {
     const id = createThread();
     setActiveThread(id);
+    onClose?.();
   }
 
   function handleLogout() {
@@ -35,7 +42,18 @@ export function AppSidebar() {
   }
 
   return (
-    <aside className="w-60 shrink-0 flex flex-col h-full bg-zinc-950 border-r border-border">
+    <aside
+      className={cn(
+        // Base styles
+        'w-60 flex flex-col bg-zinc-950 border-r border-border',
+        // Mobile: fixed overlay that slides in/out
+        'fixed inset-y-0 left-0 z-50 h-full transition-transform duration-300 ease-in-out',
+        // Desktop: static, always visible
+        'md:static md:z-auto md:translate-x-0 md:h-screen md:shrink-0',
+        // Mobile open/closed
+        isOpen ? 'translate-x-0' : '-translate-x-full',
+      )}
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3.5 shrink-0">
         <div className="flex items-center gap-2">
@@ -44,13 +62,23 @@ export function AppSidebar() {
           </div>
           <span className="text-sm font-semibold tracking-tight">recall</span>
         </div>
-        <button
-          onClick={handleNewChat}
-          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-zinc-800 transition-colors"
-          title="New chat"
-        >
-          <SquarePen size={14} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={handleNewChat}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-zinc-800 transition-colors"
+            title="New chat"
+          >
+            <SquarePen size={14} />
+          </button>
+          {/* Close button — mobile only */}
+          <button
+            onClick={onClose}
+            className="md:hidden p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-zinc-800 transition-colors"
+            aria-label="Close sidebar"
+          >
+            <X size={14} />
+          </button>
+        </div>
       </div>
 
       <Separator />
@@ -80,7 +108,7 @@ export function AppSidebar() {
           Recent
         </p>
         <ScrollArea className="h-full">
-          <SidebarThreads />
+          <SidebarThreads onSelect={onClose} />
           <div className="h-4" />
         </ScrollArea>
       </div>
@@ -102,7 +130,7 @@ export function AppSidebar() {
         </div>
 
         <button
-          onClick={() => router.push('/settings')}
+          onClick={() => { router.push('/settings'); onClose?.(); }}
           className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-zinc-800 transition-colors"
         >
           <Settings size={13} />

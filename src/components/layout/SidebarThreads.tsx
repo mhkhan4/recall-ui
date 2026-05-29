@@ -4,7 +4,11 @@ import { MessageSquare, Trash2 } from 'lucide-react';
 import { useChatStore } from '@/store/chat';
 import { cn } from '@/lib/cn';
 
-export function SidebarThreads() {
+interface SidebarThreadsProps {
+  onSelect?: () => void;
+}
+
+export function SidebarThreads({ onSelect }: SidebarThreadsProps) {
   const { threads, activeThreadId, setActiveThread, deleteThread } = useChatStore();
 
   if (threads.length === 0) {
@@ -26,7 +30,7 @@ export function SidebarThreads() {
               ? 'bg-zinc-800 text-foreground'
               : 'text-muted-foreground hover:bg-zinc-800/60 hover:text-foreground',
           )}
-          onClick={() => setActiveThread(t.id)}
+          onClick={() => { setActiveThread(t.id); onSelect?.(); }}
         >
           <MessageSquare size={12} className="shrink-0 opacity-60" />
           <span className="flex-1 text-xs truncate">{t.title}</span>

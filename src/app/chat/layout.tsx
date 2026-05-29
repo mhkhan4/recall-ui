@@ -39,7 +39,9 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
 
-          {children}
+          <div className="flex-1 min-h-0">
+            {children}
+          </div>
         </main>
       </div>
     </AuthBoundary>

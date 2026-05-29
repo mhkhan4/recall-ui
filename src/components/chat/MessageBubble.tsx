@@ -66,12 +66,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             content={message.content}
             streaming={message.isStreaming}
           />
-          {message.isStreaming && !message.content && (
-            <StreamingCursor />
-          )}
-          {message.isStreaming && message.content && (
-            <StreamingCursor />
-          )}
+          {message.isStreaming && <StreamingCursor />}
         </div>
 
         {/* Sources */}

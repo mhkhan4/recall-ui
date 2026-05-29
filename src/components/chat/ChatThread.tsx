@@ -39,10 +39,16 @@ export function ChatThread() {
   const abortRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new content
+  // Smooth-scroll only when a new message is added; instant scroll keeps up during streaming
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages.length]);
+
+  useEffect(() => {
+    if (isStreaming) {
+      bottomRef.current?.scrollIntoView({ behavior: 'instant' });
+    }
+  }, [messages, isStreaming]);
 
   function stopStreaming() {
     abortRef.current?.abort();

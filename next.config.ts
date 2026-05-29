@@ -6,21 +6,6 @@ const nextConfig: NextConfig = {
     root: path.resolve(__dirname),
   },
 
-  // Proxy /api/ingest-gate/* and /api/query-service/* to EC2 server-side.
-  // This avoids browser mixed-content blocking (HTTPS Vercel → HTTP EC2).
-  async rewrites() {
-    return [
-      {
-        source: '/api/ingest-gate/:path*',
-        destination: `${process.env.INGEST_GATE_URL}/:path*`,
-      },
-      {
-        source: '/api/query-service/:path*',
-        destination: `${process.env.QUERY_SERVICE_URL}/:path*`,
-      },
-    ];
-  },
-
   async headers() {
     return [
       {

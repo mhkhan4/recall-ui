@@ -20,10 +20,16 @@ async function proxy(request: NextRequest, path: string[]): Promise<Response> {
     duplex: 'half',
   });
 
+  // Node fetch auto-decompresses the body, so strip the encoding/length headers
+  // that described the compressed form — the browser would fail trying to re-decompress.
+  const responseHeaders = new Headers(upstream.headers);
+  responseHeaders.delete('content-encoding');
+  responseHeaders.delete('content-length');
+
   // Stream response body directly so SSE and redirect headers pass through intact
   return new Response(upstream.body, {
     status: upstream.status,
-    headers: upstream.headers,
+    headers: responseHeaders,
   });
 }
 

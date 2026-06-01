@@ -20,10 +20,14 @@ async function proxy(request: NextRequest, path: string[]): Promise<Response> {
     duplex: 'half',
   });
 
+  const responseHeaders = new Headers(upstream.headers);
+  responseHeaders.delete('content-encoding');
+  responseHeaders.delete('content-length');
+
   // Stream the response body directly — critical for SSE (sources → tokens → done)
   return new Response(upstream.body, {
     status: upstream.status,
-    headers: upstream.headers,
+    headers: responseHeaders,
   });
 }
 

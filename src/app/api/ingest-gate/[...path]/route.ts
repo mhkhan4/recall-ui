@@ -1,34 +1,72 @@
 import { NextRequest } from 'next/server';
+import { request as httpRequest } from 'node:http';
+import { request as httpsRequest } from 'node:https';
+import { Readable } from 'node:stream';
+import type { IncomingMessage, IncomingHttpHeaders } from 'node:http';
 
 const UPSTREAM = process.env.INGEST_GATE_URL ?? 'http://localhost:8000';
+
+type RawResponse = { statusCode: number; headers: IncomingHttpHeaders; body: IncomingMessage };
+
+function makeRequest(
+  url: string,
+  method: string,
+  headers: Record<string, string>,
+  body?: Buffer,
+): Promise<RawResponse> {
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(url);
+    const fn = parsed.protocol === 'https:' ? httpsRequest : httpRequest;
+    const req = fn(
+      {
+        hostname: parsed.hostname,
+        port: parsed.port || (parsed.protocol === 'https:' ? 443 : 80),
+        path: parsed.pathname + parsed.search,
+        method,
+        headers,
+      },
+      (res) => resolve({ statusCode: res.statusCode ?? 200, headers: res.headers, body: res }),
+    );
+    req.on('error', reject);
+    if (body) req.write(body);
+    req.end();
+  });
+}
 
 async function proxy(request: NextRequest, path: string[]): Promise<Response> {
   const url = `${UPSTREAM}/${path.join('/')}`;
 
-  const headers = new Headers();
+  // Drop 'host' (wrong domain) and 'accept-encoding' so the upstream never sends
+  // compressed bytes — avoids content-decoding mismatches across redirect chains.
+  const forwardHeaders: Record<string, string> = {};
   for (const [k, v] of request.headers.entries()) {
-    if (k.toLowerCase() !== 'host') headers.set(k, v);
+    const key = k.toLowerCase();
+    if (key !== 'host' && key !== 'accept-encoding') forwardHeaders[key] = v;
   }
 
-  const body = request.method === 'GET' ? undefined : await request.arrayBuffer();
+  const bodyBuf =
+    request.method === 'GET' || request.method === 'HEAD'
+      ? undefined
+      : Buffer.from(await request.arrayBuffer());
 
-  const upstream = await fetch(url, {
-    method: request.method,
-    headers,
-    body,
-    // @ts-expect-error — Node 18+ fetch duplex required for streaming bodies
-    duplex: 'half',
-  });
+  // node:http never follows redirects — the browser receives the 302 + Location
+  // header directly and navigates to GitHub itself.
+  const { statusCode, headers: upHeaders, body } = await makeRequest(
+    url,
+    request.method,
+    forwardHeaders,
+    bodyBuf,
+  );
 
-  // Node fetch auto-decompresses the body, so strip the encoding/length headers
-  // that described the compressed form — the browser would fail trying to re-decompress.
-  const responseHeaders = new Headers(upstream.headers);
-  responseHeaders.delete('content-encoding');
-  responseHeaders.delete('content-length');
+  const responseHeaders = new Headers();
+  for (const [k, v] of Object.entries(upHeaders)) {
+    if (v == null) continue;
+    const vals = Array.isArray(v) ? v : [v];
+    for (const val of vals) responseHeaders.append(k, val);
+  }
 
-  // Stream response body directly so SSE and redirect headers pass through intact
-  return new Response(upstream.body, {
-    status: upstream.status,
+  return new Response(Readable.toWeb(body) as ReadableStream, {
+    status: statusCode,
     headers: responseHeaders,
   });
 }

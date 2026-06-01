@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
 import { request as httpRequest } from 'node:http';
+
+export const maxDuration = 300;
 import { request as httpsRequest } from 'node:https';
 import { Readable } from 'node:stream';
 import type { IncomingMessage, IncomingHttpHeaders } from 'node:http';

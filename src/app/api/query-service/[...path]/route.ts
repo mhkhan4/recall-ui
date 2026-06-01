@@ -34,7 +34,8 @@ function makeRequest(
 }
 
 async function proxy(request: NextRequest, path: string[]): Promise<Response> {
-  const url = `${UPSTREAM}/${path.join('/')}`;
+  const search = new URL(request.url).search;
+  const url = `${UPSTREAM}/${path.join('/')}${search}`;
 
   const forwardHeaders: Record<string, string> = {};
   for (const [k, v] of request.headers.entries()) {

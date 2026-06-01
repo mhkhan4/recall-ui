@@ -34,7 +34,8 @@ function makeRequest(
 }
 
 async function proxy(request: NextRequest, path: string[]): Promise<Response> {
-  const url = `${UPSTREAM}/${path.join('/')}`;
+  const search = new URL(request.url).search;
+  const url = `${UPSTREAM}/${path.join('/')}${search}`;
 
   // Drop 'host' (wrong domain) and 'accept-encoding' so the upstream never sends
   // compressed bytes — avoids content-decoding mismatches across redirect chains.

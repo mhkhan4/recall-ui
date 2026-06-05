@@ -26,7 +26,12 @@ Collapsing them causes jitter: smooth scroll restarts on every token append.
 `animate-fade-in` is defined in `tailwind.config.ts` with a `translateY(4px)` → `translateY(0)` transition. Do not apply it to elements that re-render on every streaming token — it will replay the animation on each render.
 
 ## Backend URLs
-| Env var | Default | Points to |
+All client-side code calls the Next.js proxy routes (`/api/ingest-gate/...`, `/api/query-service/...`).
+The proxy routes read server-side env vars (no `NEXT_PUBLIC_` prefix) to reach the real backends.
+
+| Env var | Default | Used by |
 |---|---|---|
-| `NEXT_PUBLIC_INGEST_GATE_URL` | `http://localhost:8000` | ingest-gate |
-| `NEXT_PUBLIC_QUERY_SERVICE_URL` | `http://localhost:8002` | query-service |
+| `INGEST_GATE_URL` | `http://localhost:8000` | `src/app/api/ingest-gate/[...path]/route.ts` |
+| `QUERY_SERVICE_URL` | `http://localhost:8002` | `src/app/api/query-service/[...path]/route.ts` |
+
+Set these in the Vercel dashboard for production — never as `NEXT_PUBLIC_*`.

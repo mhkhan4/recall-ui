@@ -1,27 +1,27 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import { parseCallbackParams } from '@/lib/auth/oauth';
 
-function CallbackInner() {
+export default function AuthCallbackPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const params = parseCallbackParams(searchParams);
+    const params = parseCallbackParams();
     if (params) {
+      // Immediately overwrite the history entry so the fragment (and token)
+      // disappears from browser history before we navigate away.
+      history.replaceState(null, '', window.location.pathname);
       setAuth(params.token, params.username, params.avatarUrl);
       router.replace('/chat');
     } else {
-      setError(
-        'No token found in the callback URL. Please use the manual token flow on the login page.',
-      );
+      setError('Sign-in failed — no token received. Please try again.');
     }
-  }, [searchParams, setAuth, router]);
+  }, [setAuth, router]);
 
   if (error) {
     return (
@@ -46,19 +46,5 @@ function CallbackInner() {
         Completing sign-in…
       </div>
     </div>
-  );
-}
-
-export default function AuthCallbackPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <span className="inline-block w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      }
-    >
-      <CallbackInner />
-    </Suspense>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useChatStore } from '@/store/chat';
 import { useAuthStore } from '@/store/auth';
 import { streamQuery } from '@/lib/api/sse';
+import type { ConversationMessage } from '@/lib/api/types';
 import { MessageBubble } from './MessageBubble';
 import { ChatInput } from './ChatInput';
 import { EmptyState } from './EmptyState';
@@ -83,11 +84,22 @@ export function ChatThread() {
         createdAt: Date.now(),
       });
 
+      // Build rolling window of last 6 messages (3 user+assistant pairs) as context.
+      // Excludes the current question and the empty assistant placeholder just added.
+      const completedMessages = thread
+        ? thread.messages.filter((m) => !m.isStreaming && m.content && !m.error)
+        : [];
+      const historyWindow = completedMessages.slice(-6);
+      const conversation_history: ConversationMessage[] = historyWindow.map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
       setIsStreaming(true);
       abortRef.current = new AbortController();
 
       await streamQuery(
-        { question, mode, filters, top_k: 5 },
+        { question, mode, filters, conversation_history },
         token,
         {
           onSources(e) {

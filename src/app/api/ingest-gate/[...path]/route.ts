@@ -85,3 +85,24 @@ export async function POST(
 ) {
   return proxy(request, (await params).path);
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  return proxy(request, (await params).path);
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  return proxy(request, (await params).path);
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  return proxy(request, (await params).path);
+}

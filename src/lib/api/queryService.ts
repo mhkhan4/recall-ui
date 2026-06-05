@@ -1,7 +1,6 @@
 import type { QueryRequest, QueryResponse } from './types';
 
-const QUERY_SERVICE_URL =
-  process.env.NEXT_PUBLIC_QUERY_SERVICE_URL ?? 'http://localhost:8002';
+const QUERY_SERVICE_URL = '/api/query-service';
 
 export async function queryOnce(
   request: QueryRequest,

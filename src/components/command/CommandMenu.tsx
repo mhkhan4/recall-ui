@@ -25,6 +25,7 @@ export function CommandMenu() {
   const { createThread, addMessage, setActiveThread } = useChatStore();
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const abortRef = useRef<AbortController | null>(null);
 
   // Register Cmd+K / Ctrl+K globally
   useEffect(() => {
@@ -46,13 +47,18 @@ export function CommandMenu() {
       setError('');
       return;
     }
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+    const { signal } = abortRef.current;
+
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       setError('');
       try {
-        const res = await queryOnce({ question: search.trim(), top_k: 5, mode: 'standard' }, token);
+        const res = await queryOnce({ question: search.trim(), mode: 'standard' }, token, signal);
         setResults(res.sources ?? []);
       } catch (e) {
+        if ((e as Error).name === 'AbortError') return;
         setError((e as Error).message ?? 'Search failed');
         setResults([]);
       } finally {

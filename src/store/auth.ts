@@ -24,7 +24,20 @@ export const useAuthStore = create<AuthState>()(
 
       clearAuth: () => set({ token: null, username: null, avatarUrl: null }),
 
-      isAuthenticated: () => Boolean(get().token),
+      isAuthenticated: () => {
+        const { token } = get();
+        if (!token) return false;
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (Date.now() >= payload.exp * 1000) {
+            set({ token: null, username: null, avatarUrl: null });
+            return false;
+          }
+          return true;
+        } catch {
+          return false;
+        }
+      },
     }),
     {
       name: 'recall-auth',

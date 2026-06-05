@@ -6,11 +6,16 @@ export interface QueryFilters {
   author?: string;
 }
 
+export interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface QueryRequest {
   question: string;
-  top_k?: number;
   mode?: QueryMode;
   filters?: QueryFilters;
+  conversation_history?: ConversationMessage[];
 }
 
 export interface SourceChunk {
@@ -41,6 +46,7 @@ export interface SourcesEventPayload {
 }
 
 export interface DoneEventPayload {
+  request_id: string;
   mode: string;
   model_used: string;
   latency_ms: number;
@@ -48,6 +54,7 @@ export interface DoneEventPayload {
 
 export interface ErrorEventPayload {
   detail: string;
+  request_id?: string;
 }
 
 export type SSEEvent =

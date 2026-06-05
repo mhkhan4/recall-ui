@@ -1,8 +1,5 @@
-const INGEST_GATE_URL =
-  process.env.NEXT_PUBLIC_INGEST_GATE_URL ?? 'http://localhost:8000';
-
 export function buildGitHubLoginUrl(): string {
-  return `${INGEST_GATE_URL}/auth/github`;
+  return '/api/ingest-gate/auth/github';
 }
 
 export interface CallbackParams {
@@ -11,12 +8,17 @@ export interface CallbackParams {
   avatarUrl?: string;
 }
 
-export function parseCallbackParams(
-  searchParams: URLSearchParams,
-): CallbackParams | null {
-  const token = searchParams.get('token');
-  const username = searchParams.get('username');
+// Reads token from the URL fragment (#token=...&username=...).
+// The fragment is never sent to any server so it never appears in access logs.
+// Call history.replaceState immediately after reading to remove it from browser history.
+export function parseCallbackParams(): CallbackParams | null {
+  if (typeof window === 'undefined') return null;
+  const hash = window.location.hash.slice(1);
+  if (!hash) return null;
+  const params = new URLSearchParams(hash);
+  const token = params.get('token');
+  const username = params.get('username');
   if (!token || !username) return null;
-  const avatarUrl = searchParams.get('avatar_url') ?? undefined;
+  const avatarUrl = params.get('avatar_url') ?? undefined;
   return { token, username, avatarUrl };
 }

@@ -84,7 +84,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         )}
 
         {/* Metadata footer */}
-        {message.metadata && (
+        {message.metadata?.latency_ms != null && (
           <div className="flex items-center gap-3 text-[10px] text-muted-foreground pt-1">
             <span className={cn(
               'flex items-center gap-1',
@@ -94,6 +94,15 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               {message.metadata.model_used}
             </span>
             <span>{message.metadata.latency_ms.toFixed(0)}ms</span>
+            {message.metadata.request_id && (
+              <button
+                onClick={() => navigator.clipboard.writeText(message.metadata!.request_id)}
+                className="font-mono opacity-40 hover:opacity-80 transition-opacity cursor-copy"
+                title="Copy request ID"
+              >
+                {message.metadata.request_id.slice(0, 8)}
+              </button>
+            )}
           </div>
         )}
       </div>

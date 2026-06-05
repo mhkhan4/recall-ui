@@ -8,14 +8,11 @@ export interface CallbackParams {
   avatarUrl?: string;
 }
 
-// Reads token from the URL fragment (#token=...&username=...).
-// The fragment is never sent to any server so it never appears in access logs.
-// Call history.replaceState immediately after reading to remove it from browser history.
+// Reads token from query params (?token=...&username=...).
+// The callback page clears them from the URL immediately with history.replaceState.
 export function parseCallbackParams(): CallbackParams | null {
   if (typeof window === 'undefined') return null;
-  const hash = window.location.hash.slice(1);
-  if (!hash) return null;
-  const params = new URLSearchParams(hash);
+  const params = new URLSearchParams(window.location.search);
   const token = params.get('token');
   const username = params.get('username');
   if (!token || !username) return null;

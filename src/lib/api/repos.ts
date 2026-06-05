@@ -1,5 +1,9 @@
 const INGEST_GATE_URL = '/api/ingest-gate';
 
+export class UnauthorizedError extends Error {
+  constructor() { super('Unauthorized'); }
+}
+
 export interface RepoListItem {
   repo_full_name: string;
   index_branch: string | null;
@@ -21,6 +25,7 @@ export async function fetchRepos(token: string): Promise<RepoListItem[]> {
   const res = await fetch(`${INGEST_GATE_URL}/api/v1/setup/repos`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  if (res.status === 401) throw new UnauthorizedError();
   if (!res.ok) throw new Error(`Failed to load repos: ${res.status}`);
   const data = await res.json();
   return data.repos as RepoListItem[];
@@ -40,6 +45,7 @@ export async function updateIndexBranch(
     },
     body: JSON.stringify({ index_branch }),
   });
+  if (res.status === 401) throw new UnauthorizedError();
   if (!res.ok) throw new Error(`Failed to update branch: ${res.status}`);
   return res.json() as Promise<UpdateBranchResponse>;
 }

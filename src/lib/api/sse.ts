@@ -12,6 +12,7 @@ export interface StreamCallbacks {
   onToken: (token: string) => void;
   onDone: (event: DoneEventPayload) => void;
   onError: (event: ErrorEventPayload) => void;
+  onUnauthorized?: () => void;
 }
 
 export async function streamQuery(
@@ -38,6 +39,10 @@ export async function streamQuery(
   }
 
   if (!res.ok) {
+    if (res.status === 401) {
+      callbacks.onUnauthorized?.();
+      return;
+    }
     const text = await res.text().catch(() => '');
     let detail = `HTTP ${res.status}`;
     try {

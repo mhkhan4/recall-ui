@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { AuthBoundary } from '@/components/layout/AuthBoundary';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { Trash2, LogOut, GitBranch, Loader2 } from 'lucide-react';
-import { fetchRepos, updateIndexBranch } from '@/lib/api/repos';
+import { fetchRepos, updateIndexBranch, UnauthorizedError } from '@/lib/api/repos';
 import type { RepoListItem } from '@/lib/api/repos';
 
 export default function SettingsPage() {
@@ -32,7 +32,10 @@ export default function SettingsPage() {
         }
         setDraft(initial);
       })
-      .catch(() => setReposError('Could not load repositories.'));
+      .catch((err) => {
+        if (err instanceof UnauthorizedError) { clearAuth(); router.replace('/login'); return; }
+        setReposError('Could not load repositories.');
+      });
   }, [token]);
 
   async function handleSaveBranch(repoFullName: string) {
@@ -51,7 +54,8 @@ export default function SettingsPage() {
       );
       setSavedRepo(repoFullName);
       setTimeout(() => setSavedRepo(null), 3000);
-    } catch {
+    } catch (err) {
+      if (err instanceof UnauthorizedError) { clearAuth(); router.replace('/login'); return; }
       setReposError(`Failed to update branch for ${repoFullName}.`);
     } finally {
       setSavingRepo(null);

@@ -50,13 +50,18 @@ async function proxy(request: NextRequest, path: string[]): Promise<Response> {
       ? undefined
       : Buffer.from(await request.arrayBuffer());
 
-  const { statusCode, headers: upHeaders, body } = await makeRequest(
-    url,
-    request.method,
-    forwardHeaders,
-    bodyBuf,
-  );
+  let raw: RawResponse;
+  try {
+    raw = await makeRequest(url, request.method, forwardHeaders, bodyBuf);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ detail: `query-service unreachable: ${msg}` }), {
+      status: 503,
+      headers: { 'content-type': 'application/json' },
+    });
+  }
 
+  const { statusCode, headers: upHeaders, body } = raw;
   const responseHeaders = new Headers();
   for (const [k, v] of Object.entries(upHeaders)) {
     if (v == null) continue;

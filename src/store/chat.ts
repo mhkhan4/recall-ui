@@ -185,7 +185,16 @@ export const useChatStore = create<ChatState>()(
     {
       name: 'recall-chat-v1',
       partialize: (s) => ({
-        threads: s.threads,
+        // isStreaming and retrieving on messages are intentionally cleared here —
+        // they must never survive a page reload or logout.
+        threads: s.threads.map((t) => ({
+          ...t,
+          messages: t.messages.map((m): ChatMessage =>
+            m.isStreaming || m.retrieving
+              ? { ...m, isStreaming: false, retrieving: false }
+              : m,
+          ),
+        })),
         activeThreadId: s.activeThreadId,
         mode: s.mode,
         filters: s.filters,

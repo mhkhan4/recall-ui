@@ -5,7 +5,7 @@ import { Command } from 'cmdk';
 import { Search, Loader2, Github, FileCode, MessageSquare, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useChatStore } from '@/store/chat';
-import { queryOnce } from '@/lib/api/queryService';
+import { queryOnce, UnauthorizedError } from '@/lib/api/queryService';
 import type { SourceChunk } from '@/lib/api/types';
 import { cn } from '@/lib/cn';
 
@@ -21,7 +21,7 @@ export function CommandMenu() {
   const [results, setResults] = useState<SourceChunk[]>([]);
   const [error, setError] = useState('');
 
-  const { token } = useAuthStore();
+  const { token, clearAuth } = useAuthStore();
   const { createThread, addMessage, setActiveThread } = useChatStore();
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -59,6 +59,11 @@ export function CommandMenu() {
         setResults(res.sources ?? []);
       } catch (e) {
         if ((e as Error).name === 'AbortError') return;
+        if (e instanceof UnauthorizedError) {
+          clearAuth();
+          window.location.replace('/login');
+          return;
+        }
         setError((e as Error).message ?? 'Search failed');
         setResults([]);
       } finally {

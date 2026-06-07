@@ -2,6 +2,10 @@ import type { QueryRequest, QueryResponse } from './types';
 
 const QUERY_SERVICE_URL = '/api/query-service';
 
+export class UnauthorizedError extends Error {
+  constructor() { super('Unauthorized'); }
+}
+
 export async function queryOnce(
   request: QueryRequest,
   token: string,
@@ -18,6 +22,7 @@ export async function queryOnce(
   });
 
   if (!res.ok) {
+    if (res.status === 401) throw new UnauthorizedError();
     const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` })) as { detail?: string };
     throw new Error(err.detail ?? `HTTP ${res.status}`);
   }

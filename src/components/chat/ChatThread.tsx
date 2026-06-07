@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { useChatStore } from '@/store/chat';
 import { useAuthStore } from '@/store/auth';
 import { streamQuery } from '@/lib/api/sse';
@@ -34,7 +33,6 @@ export function ChatThread() {
   } = useChatStore();
 
   const { token, clearAuth } = useAuthStore();
-  const router = useRouter();
 
   const thread = threads.find((t) => t.id === activeThreadId);
   const messages = thread?.messages ?? [];
@@ -122,7 +120,7 @@ export function ChatThread() {
           onUnauthorized() {
             setIsStreaming(false);
             clearAuth();
-            router.replace('/login');
+            window.location.replace('/login');
           },
         },
         abortRef.current.signal,
@@ -132,7 +130,7 @@ export function ChatThread() {
       token, isStreaming, activeThreadId, mode, filters,
       createThread, addMessage, appendToken, setMessageSources,
       setMessageRetrieving, finalizeMessage, setMessageError, setIsStreaming,
-      clearAuth, router,
+      clearAuth,
     ],
   );
 
